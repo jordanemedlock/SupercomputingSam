@@ -4,6 +4,8 @@
 
 ## Sun May 3
 
+***Please ask me questions if you need help!!!***
+
 ## Starting up Haskell
 
 What is a function?
