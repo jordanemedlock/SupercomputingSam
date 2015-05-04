@@ -1,0 +1,28 @@
+<h1 id="sams-lessons">Sams lessons</h1>
+<hr />
+<h2 id="sun-may-3">Sun May 3</h2>
+<h2 id="starting-up-haskell">Starting up Haskell</h2>
+<p>What is a function? What is a concrete type? What is a polymorphic type?</p>
+<p>Define the parts in this Haskell recursive function definition:</p>
+<pre><code>factorial :: (Num a, Eq a) =&gt; a -&gt; a
+factorial 0 = 1
+factorial n = factorial (n-1) * n</code></pre>
+<p><code>factorial :: (Num a, Eq a) =&gt; a -&gt; a</code></p>
+<p><code>factorial</code></p>
+<p><code>(Num a, Eq a)</code></p>
+<p><code>a -&gt; a</code></p>
+<p><code>factorial 0 = 1</code></p>
+<p><code>factorial n = factorial (n-1) * n</code></p>
+<p><code>factorial (n-1)</code></p>
+<p>Is Haskell compiled or interpreted? Whats the difference? How do you compile a Haskell program? How do you run a Haskell program? How do you interpret a Haskell program? What does GHC stand for? What is the difference between GHC and GHCi?</p>
+<p>Where does a Haskell program start? What is the type definition of that function?</p>
+<p>What does IO mean?</p>
+<p>Another way to write factorial: fact n = if n == 0 then 1 else fact (n-1) * n fact n | n == 0 = 1 | otherwise = fact (n-1) * n</p>
+<p>Define fibonacci in Haskell. It is defined as Fib(0) = 0, Fib(1) = 1, and Fib(n) = Fib(n-1) + Fib(n-2)</p>
+<p>Try it out for large values.</p>
+<p>Look online for a faster version.</p>
+<p>Define factorial using <code>product</code> and lists</p>
+<hr />
+<p>The heart of every Haskell application is recursion.</p>
+<p>Every loop and definition is made using recursion.</p>
+<p>Define recursion.</p>
