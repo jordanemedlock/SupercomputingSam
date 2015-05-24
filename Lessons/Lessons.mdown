@@ -64,15 +64,6 @@ Define factorial using `product` and lists
 
 ----------------------
 
-
-The heart of every Haskell application is recursion. 
-
-Every loop and definition is made using recursion.
-
-Define recursion.
-
-Define map using recursion.
-Define filter using recursion.
-Define zip using recursion.
-Define zipWith using recursion.
 Look through Prelude and find any functions or things you don't understand or think are interesting.
+
+
