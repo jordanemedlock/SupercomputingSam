@@ -28,13 +28,14 @@ threshold = 10
 upperSpeed = 10
 lowerSpeedScale = 0.1
 
+
+-- collide :: Cell -> Cell -> (Maybe Cell, Maybe Cell)
 -- I would recommend a type signature like this so that you can 
 -- differentiate which cell was absorbed into which if any were absorbed at all
 -- Remember that Maybes can have a value of either (Just x) where x is a Cell or 
 -- Nothing without a value
 -- Of course if you want something else that is totally possible
 -- Theres more than one way to do anything 
--- collide :: Cell -> Cell -> (Maybe Cell, Maybe Cell)
 
 -- getX, getY, collide, checkCollisions :: Cells -> Cells
 
