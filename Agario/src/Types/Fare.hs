@@ -12,5 +12,5 @@ module Types.Fare where
 
 	main :: IO()
 	main = do
-		let food = Fare { name="Food",alive="True",deaths=0,mass=1 }
+		let food = Fare { cells=[] }
 		print food
