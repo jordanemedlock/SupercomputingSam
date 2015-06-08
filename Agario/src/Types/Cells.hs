@@ -1,5 +1,7 @@
 module Types.Cells where
 
+import Control.Applicative
+
 type Position = (Double, Double)
 
 type Cells = [Cell]
@@ -9,13 +11,22 @@ data Cell = Cell { name :: String
                  , deaths :: Int
                  , mass :: Int
                  , pos :: Position 
-                 } deriving (Show, Eq)
+                 } deriving (Show)
+
+instance Ord Cell where
+  a <= b = mass a <= mass b
+
+instance Eq Cell where
+  a == b = mass a == masss b
+
+x -: f = f x
 
 -- | Finds the radius of a circular Cell using its mass as the Area by finding
 -- | the square root of the area over pi 
 radius :: Cell -- ^ contains the data of a cell to find the
        -> Double -- ^ radius as a double
-radius (Cell { mass = m }) = sqrt(fromIntegral m / pi)
+radius = sqrt . (/pi) . fromIntegral . mass 
+
 
 -- | Calculates the distance between two points by taking taking the square   
 -- | root of the the sum of the change inthe x coordinate squared and the 
@@ -41,21 +52,22 @@ intersect cell1 cell2 = cell1 `distanceBtwnCells` cell2 < radius cell1 + radius 
 -- Finds the x or the y coordinate of every cell in a list
 getX, getY :: Cells 
            -> [Double] -- ^ x or y coordinate as a list of doubles
-getX cells = [fst (pos cell) | cell <- cells]
-getY cells = [snd (pos cell) | cell <- cells]
+getX = map $ fst . pos
+getY = map $ snd . pos
 
 -- I didn't know which of these I would need/want more... so I made them both
 
 -- | Finds the x and the y cordinate of every cell in a list
 getXY :: Cells 
       -> [Position] -- ^ x and y as a list of the "Positiion" type
-getXY cells = [pos cell | cell <- cells] 
+getXY = map pos  
+  --[pos cell | cell <- cells] 
 
 -- | Finds and returns a cell with the mass between two cells
 greaterMass :: Cell -- ^ uses the mass of two cells
             -> Cell 
             -> Cell -- ^ larger cell as a cell
-greaterMass cell1 cell2 = if mass cell1 > mass cell2 then cell1 else cell2
+greaterMass = max
 
 -- | Sees if two cells are intersecting or not, and if they are, then makes the 
 -- | smaller cell Nothing and gives the larger cell the smaller's mass
@@ -71,6 +83,8 @@ absorb cell1 cell2
         -- returns the two cells as Just cells when they don't intersect
     where inters = cell1 `intersect` cell2
           newMass = mass cell1 + mass cell2  
+
+--map' :: (a -> b) -> [a] -> [b]
 
 -- | Uses the position of a mouse cursor to move the cell  
 move :: Position -- ^ Position of the mouse cursor
@@ -88,6 +102,21 @@ move cursor@(curX, curY) cell = cell { pos = (x + dx, y + dy) }
         upperSpeed = 10
         lowerSpeedScale = 0.1
 
+isNothing :: Maybe a -> Bool
+isNothing = (== Nothing)
+
+nameEquals :: Cell -> Cell -> Bool
+nameEquals c1 c2 = name c1 == name c2
+
+checkCollisions :: Cells -> Cells
+checkCollisions cs = nubBy  $ sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `nameEquals` b]
+
+tupleToList :: (Maybe a, Maybe a) -> [a]
+tupleToList (Nothing, Nothing) = []
+tupleToList (Just a, Nothing) = [a]
+tupleToList (Nothing, Just b) = [b]
+tupleToList (Just a, Just b) = [a,b]
+
 main :: IO()
 main = do
   let cell1 = Cell { name = "Hugh G. Rection"
@@ -104,3 +133,9 @@ main = do
                    }
   let inter = cell1 `intersect` cell2
   print (inter, cell1 `distanceBtwnCells` cell2, radius cell1 + radius cell2)
+
+
+[a 10, b 20, c 5]
+
+[a 10, b 20, a 15, b 20, a 10, b 20, c 5, a 15, c 5, b 20]
+[b 20, a 15, c 5]
