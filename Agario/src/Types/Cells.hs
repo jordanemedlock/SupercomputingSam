@@ -1,6 +1,6 @@
 module Types.Cells where
 
-import Control.Applicative
+import qualified Data.List as L
 
 type Position = (Double, Double)
 
@@ -8,7 +8,7 @@ type Cells = [Cell]
 
 data Cell = Cell { name :: String
                  , alive :: Bool
-                 , deaths :: Int
+                 , cellNum :: Int
                  , mass :: Int
                  , pos :: Position 
                  } deriving (Show)
@@ -17,9 +17,7 @@ instance Ord Cell where
   a <= b = mass a <= mass b
 
 instance Eq Cell where
-  a == b = mass a == masss b
-
-x -: f = f x
+  a == b = cellNum a == cellNum b
 
 -- | Finds the radius of a circular Cell using its mass as the Area by finding
 -- | the square root of the area over pi 
@@ -40,7 +38,7 @@ distance (x,y) (x2,y2) = sqrt((x2-x)**2 + (y2-y)**2)
 distanceBtwnCells :: Cell -- ^ uses the positon in the cell's data 
                   -> Cell 
                   -> Double -- ^ distance between two cells as a double
-distanceBtwnCells c1 c2 = pos c1 `distance` pos c2 
+distanceBtwnCells cell1 cell2 = pos cell1 `distance` pos cell2 
 
 -- | Tests if two cells are intersecting by finding the distance between the
 -- | cells and testing if that is less than the sum of their radii
@@ -55,13 +53,10 @@ getX, getY :: Cells
 getX = map $ fst . pos
 getY = map $ snd . pos
 
--- I didn't know which of these I would need/want more... so I made them both
-
 -- | Finds the x and the y cordinate of every cell in a list
 getXY :: Cells 
       -> [Position] -- ^ x and y as a list of the "Positiion" type
 getXY = map pos  
-  --[pos cell | cell <- cells] 
 
 -- | Finds and returns a cell with the mass between two cells
 greaterMass :: Cell -- ^ uses the mass of two cells
@@ -73,18 +68,16 @@ greaterMass = max
 -- | smaller cell Nothing and gives the larger cell the smaller's mass
 absorb :: Cell -- ^ uses cells mass, and the "intersect" function 
        -> Cell 
-       -> (Maybe Cell, Maybe Cell) -- ^ absorbed cell as a tuple with Just cell or Nothing
+       -> (Cell, Cell) -- ^ absorbed cell as a tuple with Just cell or Nothing
 absorb cell1 cell2 
-    | inters && mass cell1 > mass cell2 = (Just cell1 {mass = newMass}, Nothing)
+    | inters && mass cell1 > mass cell2 = (cell1 {mass = newMass}, cell2 {alive = False})
         -- returns Just cell1 with the newMass when cell1 is larger and they intersect 
-    | inters && mass cell1 < mass cell2 = (Nothing, Just cell2 {mass = newMass})
+    | inters && mass cell1 < mass cell2 = (cell1 {alive = False}, cell2 {mass = newMass})
         -- Does the same as above except using cell2 instead 
-    | otherwise                         = (Just cell1, Just cell2)
+    | otherwise                         = (cell1, cell2)
         -- returns the two cells as Just cells when they don't intersect
     where inters = cell1 `intersect` cell2
           newMass = mass cell1 + mass cell2  
-
---map' :: (a -> b) -> [a] -> [b]
 
 -- | Uses the position of a mouse cursor to move the cell  
 move :: Position -- ^ Position of the mouse cursor
@@ -102,40 +95,34 @@ move cursor@(curX, curY) cell = cell { pos = (x + dx, y + dy) }
         upperSpeed = 10
         lowerSpeedScale = 0.1
 
-isNothing :: Maybe a -> Bool
-isNothing = (== Nothing)
+idEquals :: Cell -> Cell -> Bool
+idEquals cell1 cell2 = cellNum cell1 == cellNum cell2 
 
-nameEquals :: Cell -> Cell -> Bool
-nameEquals c1 c2 = name c1 == name c2
 
+-- This basturd works if looped multiple times... I could prob make this work
+-- with recursion, but ima just say no to that. Don't judge me, I'm in Mexico, damn it!
 checkCollisions :: Cells -> Cells
-checkCollisions cs = nubBy  $ sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `nameEquals` b]
+checkCollisions cs = L.nubBy idEquals $ L.sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `idEquals` b]
 
-tupleToList :: (Maybe a, Maybe a) -> [a]
-tupleToList (Nothing, Nothing) = []
-tupleToList (Just a, Nothing) = [a]
-tupleToList (Nothing, Just b) = [b]
-tupleToList (Just a, Just b) = [a,b]
+tupleToList :: (Cell, Cell) -> Cells
+tupleToList (cell1, cell2)
+    | alive cell1 && not (alive cell2) = [cell1]
+    | not (alive cell1) && alive cell2 = [cell2]
+    | otherwise                        = [cell1, cell2]
 
 main :: IO()
 main = do
   let cell1 = Cell { name = "Hugh G. Rection"
                    , alive = True
-                   , deaths = 0
+                   , cellNum = 0
                    , mass = 100
                    , pos = (7.426019951630333,10) 
                    }
   let cell2 = Cell { name = "Not Hugh G. Rection"
                    , alive = True
-                   , deaths = 0
+                   , cellNum = 0
                    , mass = 10
                    , pos = (0,10) 
                    }
   let inter = cell1 `intersect` cell2
   print (inter, cell1 `distanceBtwnCells` cell2, radius cell1 + radius cell2)
-
-
-[a 10, b 20, c 5]
-
-[a 10, b 20, a 15, b 20, a 10, b 20, c 5, a 15, c 5, b 20]
-[b 20, a 15, c 5]
