@@ -1,6 +1,9 @@
 module Types.Cells where
 
 import qualified Data.List as L
+import qualified Data.List.Split as S
+import System.Random
+import Control.Applicative
 
 type Position = (Double, Double)
 
@@ -98,11 +101,35 @@ move cursor@(curX, curY) cell = cell { pos = (x + dx, y + dy) }
 idEquals :: Cell -> Cell -> Bool
 idEquals cell1 cell2 = cellNum cell1 == cellNum cell2 
 
+intersections :: Cells -> [(Cell, Cell)]
+intersections cells = [(x,y) | x <- cells, y <- cells, x `intersect` y, not (x `idEquals` y)]
+
+elemBy :: (Eq b) => (a -> b) -> a -> [a] -> Bool
+elemBy f x xs = (not.null) $ filter ((f x == ) . f) xs 
+
+cellNumElem :: Cell -> Cells -> Bool
+cellNumElem = elemBy cellNum
+
+combineMasses :: Cell -> Cell -> Cell
+combineMasses c1 c2 = c1 { mass = mass c1 + mass c2 }
+
+checkCollisions :: Cells -> Cells
+checkCollisions cells = filter (not.(`cellNumElem` (alive++dead))) cells ++alive
+  where (alive,dead) = helper (intersections cells) [] []
+        helper [] alive dead = (alive, dead)
+        helper ((x,y):xs) alive dead
+          | x > y && not (x `cellNumElem` alive) = helper xs (combineMasses x y:alive) (y:dead)
+          | y > x && not (y `cellNumElem` alive) = helper xs (combineMasses y x:alive) (x:dead)
+          | not (x `cellNumElem` alive 
+              || y `cellNumElem` alive)          = helper xs (x:y:alive) dead
+          | otherwise                            = helper xs alive dead
+
+
 
 -- This bastard works if looped multiple times... I could prob make this work
 -- with recursion, but ima just say no to that. Don't judge me, I'm in Mexico, damn it!
-checkCollisions :: Cells -> Cells
-checkCollisions cs = L.nubBy idEquals $ L.sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `idEquals` b]
+--checkCollisions :: Cells -> Cells
+--checkCollisions cs = L.nubBy idEquals $ L.sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `idEquals` b]
 
 tupleToList :: (Cell, Cell) -> Cells
 tupleToList (cell1, cell2)
@@ -110,9 +137,25 @@ tupleToList (cell1, cell2)
     | not (alive cell1) && alive cell2 = [cell2]
     | otherwise                        = [cell1, cell2]
 
+generateRandomPopulation :: IO Cells
+generateRandomPopulation = do
+  gen1 <- newStdGen
+  let names = S.chunksOf 5 $ randomRs ('a','z') gen1
+  let alives = repeat True
+  let cellNums = [0..]
+  gen2 <- newStdGen
+  let masses = randomRs (0,100) gen2
+  gen3 <- newStdGen
+  let xs = randomRs (0.0,100.0) gen3  
+  gen4 <- newStdGen
+  let ys = randomRs (0.0,100.0) gen4 
+  let positions = zip xs ys
+  return $ L.zipWith5 Cell names alives cellNums masses positions 
+
+
 main :: IO()
 main = do
-  let cell1 = Cell { name = "Hugh G. Rection"
+  let cell1 = Cell { name = "Hugh G. Rection" 
                    , alive = True
                    , cellNum = 0
                    , mass = 100
@@ -125,4 +168,12 @@ main = do
                    , pos = (0,10) 
                    }
   let inter = cell1 `intersect` cell2
-  print (inter, cell1 `distanceBtwnCells` cell2, radius cell1 + radius cell2)
+  cells <- take 10 <$> generateRandomPopulation
+  print $ intersections cells
+  putStrLn ""
+  print $ checkCollisions cells
+
+
+-- Heres the FunGEn URLs
+-- https://github.com/simonmichael/fungen/blob/master/examples/pong/pong.hs
+-- http://hackage.haskell.org/package/FunGEn-0.4.6.1/docs/Graphics-UI-Fungen.html
