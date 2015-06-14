@@ -99,7 +99,7 @@ idEquals :: Cell -> Cell -> Bool
 idEquals cell1 cell2 = cellNum cell1 == cellNum cell2 
 
 
--- This basturd works if looped multiple times... I could prob make this work
+-- This bastard works if looped multiple times... I could prob make this work
 -- with recursion, but ima just say no to that. Don't judge me, I'm in Mexico, damn it!
 checkCollisions :: Cells -> Cells
 checkCollisions cs = L.nubBy idEquals $ L.sort $ concat [tupleToList $ absorb a b | a <- cs, b <- cs, not $ a `idEquals` b]
