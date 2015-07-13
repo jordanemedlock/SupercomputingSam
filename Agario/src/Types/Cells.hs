@@ -2,14 +2,14 @@ module Types.Cells where
 
 import qualified Data.List as L
 
-type Position = (Double, Double)
+type Pos = (Double, Double)
 
 type Cells = [Cell]
 
 data Cell = Cell { name :: String
                  , cellNum :: Int
                  , mass :: Int
-                 , pos :: Position 
+                 , pos :: Pos 
                  } deriving (Show)
 
 instance Ord Cell where
@@ -28,8 +28,8 @@ radius = sqrt.(/pi).fromIntegral.mass
 -- | Calculates the distance between two points by taking taking the square   
 -- | root of the the sum of the change inthe x coordinate squared and the 
 -- | change in the y coordinate squared
-distance :: Position -- ^ position type with (x,y) as two doubles 
-         -> Position 
+distance :: Pos -- ^ Pos type with (x,y) as two doubles 
+         -> Pos 
          -> Double -- ^ distance between points as a double
 distance (x,y) (x2,y2) = sqrt((x2-x)**2 + (y2-y)**2)
 
@@ -41,15 +41,15 @@ distanceBtwnCells cell1 cell2 = pos cell1 `distance` pos cell2
 
 -- | Tests if two cells are intersecting by finding the distance between the
 -- | cells and testing if that is less than the sum of their radii
-intersect :: Cell -- ^ uses cell's position and mass data 
+intersect :: Cell -- ^ uses cell's Pos and mass data 
           -> Cell 
           -> Bool -- ^ intersection as a True or False value
 intersect cell1 cell2 = cell1 `distanceBtwnCells` cell2 < radius cell1 + radius cell2 
 
--- | Uses the position of a mouse cursor to move the cell  
-move :: Position -- ^ Position of the mouse cursor
-     -> Cell -- ^ uses position of the cell
-     -> Cell -- ^ creates a new cell with a position moving towards the cursor 
+-- | Uses the Pos of a mouse cursor to move the cell  
+move :: Pos -- ^ Pos of the mouse cursor
+     -> Cell -- ^ uses Pos of the cell
+     -> Cell -- ^ creates a new cell with a Pos moving towards the cursor 
 move cursor@(curX, curY) cell = cell { pos = (x + dx, y + dy) }
     -- finds the point the cell need to move trough crazy trigonometry
   where l = cursor `distance` pos cell
