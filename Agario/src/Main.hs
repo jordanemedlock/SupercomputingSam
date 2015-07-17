@@ -1,5 +1,6 @@
 module Main where
 
+import Prelude hiding (fst,snd)
 import Graphics.UI.Fungen
 import Control.Applicative
 import Types.Cells hiding (main)
@@ -10,13 +11,31 @@ import Control.Arrow ((***))
 width, height :: (Num a) => a
 width = 400
 height = 400
-objectManagerName = "Cells"
+cellManagerName = "Cells"
+startCellMass = enum ((fromIntegral width+height :: Double) / 2 * 0.25) 
+maxFareMass = fromIntegral startCellMass `div` 2
 
-enum :: (Enum a, Enum b) => a -> b
-enum = toEnum . fromEnum
+main = do
+  let winConfig = ((558,116),(width,height), "Agar.IO")
+  let gameMap = colorMap 0.7 0.7 0.7  width height
+  let cellPic ra r g b = Basic $ Circle (realToFrac ra) (realToFrac r) (realToFrac g) (realToFrac b) Filled
+  let cell = Cell {name="hard coded", cellNum = 0, mass = startCellMass, pos = (0,0), rgb = (1,0,0)}
+  let player = object "player" (cellPic (radius cell) r g b) False (width/2, height/2) (0,0) cell
+          where r = fst $ rgb cell
+                g = snd $ rgb cell
+                b = trd $ rgb cell
+  let cells = objectGroup cellManagerName [player]
+  let inputHandlers = [ (MouseButton LeftButton, StillDown, mouseHandler)
+                      ,(Char '\27', Press, \_ _ -> funExit)
+                      ]
+  fare <- take 100 <$> generateRandomPopulation width height maxFareMass
+  let fareObjects = map (fareToObject cellPic) fare
+  let fares = objectGroup "Fares" fareObjects
+  funInit winConfig gameMap [fares, cells] 0 0 inputHandlers stepAction (Timer 30) []
+
 
 mouseHandler _ (Position x y) = do
-  gameObject <- findObject "player" objectManagerName
+  gameObject <- findObject "player" cellManagerName
   (xPos, yPos) <- getObjectPosition gameObject
   let (w,h) = (width :: GLdouble, height :: GLdouble)
   setObjectSpeed (fromIntegral (x - floor xPos) * 0.01, fromIntegral ((floor (w/2) - y) - (floor yPos - floor (h/2))) * 0.01) gameObject
@@ -36,25 +55,26 @@ updateCell cellObject = do
     return $ updateObjectAttribute newCell cellObject
 
 updateObjectsPostitions = do
-  cells <- getObjectsFromGroup objectManagerName
+  cells <- getObjectsFromGroup cellManagerName
   newCells <- mapM updateCell cells
-  let group = objectGroup objectManagerName newCells
+  let group = objectGroup cellManagerName newCells
   setObjectManagers [group]
 
-main = do
-  let winConfig = ((558,116),(width,height), "Agar.IO")
-      gameMap = colorMap 0.7 0.7 0.7  width height
-      cellPic r = Basic $ Circle (realToFrac r) 1 0 0 Filled
-      cell = Cell {name="hard coded", cellNum = 0, mass = 100, pos = (0,0)}
-      player = object "player" (cellPic $ radius cell) False (width/2, height/2) (0,0) cell
-      cells = objectGroup objectManagerName [player]
-      inputHandlers = [ (MouseButton LeftButton, StillDown, mouseHandler)
-                      ,(Char '\27', Press, \_ _ -> funExit)
-                      ]
-  fare <- take 100 <$> generateRandomPopulation width height
-  let fareObjects = map (fareToObject cellPic) fare
-      fares = objectGroup "fares" fareObjects
-  funInit winConfig gameMap [cells, fares] 0 0 inputHandlers stepAction (Timer 30) []
+enum :: (Enum a, Enum b) => a -> b
+enum = toEnum . fromEnum
 
-fareToObject :: (Double -> ObjectPicture) -> Cell -> GameObject Cell
-fareToObject picture fare = object "fare" (picture $ radius fare) False ((realToFrac *** realToFrac) (pos fare)) (0,0) fare
+fst :: (a,b,c) -> a
+fst (x,_,_) = x
+snd :: (a,b,c) -> b
+snd (_,y,_) = y
+trd :: (a,b,c) -> c
+trd (_, _, z) = z
+
+fareToObject :: (Double -> Double -> Double -> Double -> ObjectPicture) -> Cell -> GameObject Cell
+fareToObject picture fare = object "fare" (picture (radius fare) r g b) False ((realToFrac *** realToFrac) (pos fare)) (0,0) fare
+    where r = fst $ rgb fare
+          g = snd $ rgb fare
+          b = trd $ rgb fare
+
+-- Before you ask, I know the whole changing fst and snd, and adding trd thing is sloppy.. 
+-- but I don't care. It works, and it's beautiful (in it's own way).

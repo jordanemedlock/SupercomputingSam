@@ -7,9 +7,10 @@ type Pos = (Double, Double)
 type Cells = [Cell]
 
 data Cell = Cell { name :: String
-                 , cellNum :: Int
+                 , cellNum :: Double
                  , mass :: Int
-                 , pos :: Pos 
+                 , pos :: Pos
+                 , rgb :: (Double, Double, Double) 
                  } deriving (Show)
 
 instance Ord Cell where
@@ -94,11 +95,13 @@ main = do
                    , cellNum = 0
                    , mass = 100
                    , pos = (0,10) 
+                   , rgb = (0,0,0)
                    }
   let cell2 = Cell { name = "Not Hugh G. Rection"
                    , cellNum = 0
                    , mass = 10
                    , pos = (0,10) 
+                   , rgb = (0,0,0)
                    }
   let cols = checkCollisions [cell1, cell2]
   let m = move (pos cell1) cell2
