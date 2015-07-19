@@ -22,11 +22,11 @@ generateRandomPopulation xrange yrange massRange = do
   let ys = randomRs (0.0,yrange) gen3
   let positions = zip xs ys
   gen4 <- newStdGen
-  let rs = randomRs (0.0,1.0 :: Double) gen4
+  let rs = randomRs (0.0,1.0) gen4
   gen5 <- newStdGen
-  let gs = randomRs (0.0,1.0 :: Double) gen5
+  let gs = randomRs (0.0,1.0) gen5
   gen6 <- newStdGen
-  let bs = randomRs (0.0,1.0 :: Double) gen6
+  let bs = randomRs (0.0,1.0) gen6
   let rgbs = zip3 rs gs bs
   return $ zipWith5 Cell names cellNums masses positions rgbs
 
