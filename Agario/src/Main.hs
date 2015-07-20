@@ -16,7 +16,10 @@ maxFareMass = startCellMass `div` 2
 
 main = do
   let winConfig = ((558,116),(width,height), "Agar.IO")
-  let gameMap = colorMap 0.7 0.7 0.7  width height
+  let tile = (0, False, 0, ())
+  let tiles = replicate 10 $ replicate 10 tile
+  let bmpList = [("tex.bmp", Nothing)]
+  let gameMap = tileMap tiles 40 40
   let cellPic radius r g b = Basic $ Circle (realToFrac radius) (realToFrac r) (realToFrac g) (realToFrac b) Filled
   let cell = Cell {name="hard coded", cellNum = 0, mass = startCellMass, pos = (0,0), rgb = (1,0,0)}
   let player = object "player" (cellPic (radius cell) r g b) False (width/2, height/2) (0,0) cell
@@ -31,7 +34,7 @@ main = do
   print $ length fare
   let fareObjects = map (fareToObject cellPic) fare
   let fares = objectGroup "Fares" fareObjects
-  funInit winConfig gameMap [fares, cells] 0 0 inputHandlers stepAction (Timer 30) []
+  funInit winConfig gameMap [fares, cells] 0 0 inputHandlers stepAction (Timer 30) bmpList
 
 
 mouseHandler _ (Position x y) = do
@@ -40,7 +43,7 @@ mouseHandler _ (Position x y) = do
   let (w,h) = (width :: GLdouble, height :: GLdouble)
   setObjectSpeed (fromIntegral (x - floor xPos) * 0.01, fromIntegral ((floor (w/2) - y) - (floor yPos - floor (h/2))) * 0.01) gameObject
   liftIOtoIOGame $ do
-    print $ "(curX,curY): " ++ show (x,y)
+    print $ "(curX, curY): " ++ show (x,y)
     print $ "(objX, objY): " ++ show (xPos, yPos)
   return ()
 
@@ -75,4 +78,3 @@ fareToObject picture fare = object "fare" (picture (radius fare) r g b) False ((
     where r = fst' $ rgb fare
           g = snd' $ rgb fare
           b = trd  $ rgb fare
-
