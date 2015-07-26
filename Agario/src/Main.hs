@@ -46,16 +46,25 @@ mouseHandler _ (Position x y) = do
 
 stepAction :: IOGame t Cell u v ()
 stepAction = do
-  
-  playerObj <- findObject "player" cellManagerName 
-  fareObjs  <- getObjectsFromGroup "Fares" 
+
+  playerObj <- findObject "player" cellManagerName
+  fareObjs  <- getObjectsFromGroup "Fares"
   col       <- objectListObjectCollision fareObjs playerObj
 
-  if col 
-    then (do letsDoATest <- getFareFromCollision fareObjs playerObj
-             setObjectAsleep True letsDoATest
+  if col
+    then (do collidee <- getFareFromCollision fareObjs playerObj
+             setObjectAsleep True collidee
+             let cell = getGameObjectAttribute playerObj
+             let fare = getGameObjectAttribute collidee
+             let newCell = (combineMasses cell fare)
+             let player = updateObjectAttribute newCell playerObj
+             let player' = updateObjectSize (realToFrac $ radius newCell, realToFrac $ radius newCell) player
+             printOnPrompt (radius newCell, radius newCell)
+             objMans <- getObjectManagers
+             let newOMan = updateObject (const player') (getGameObjectId playerObj) cellManagerName objMans
+             setObjectManagers newOMan
              printOnPrompt "YAY!!!!")
-    else printOnPrompt "Nothing"
+    else return ()
 
   -- printOnPrompt $ length fareObjs
 
@@ -86,20 +95,20 @@ createCellPicture r' (r, g, b) = Basic $ Circle radius red green blue Filled
           blue   = realToFrac b
 
 createCell :: Cell -> GLdouble -> GLdouble -> GameObject Cell
-createCell c w h = 
+createCell c w h =
   let cellPic = createCellPicture (radius c) (rgb c)
-  in object "player" cellPic False (w/2, h/2) (0,0) c 
+  in object "player" cellPic False (w/2, h/2) (0,0) c
 
 fareToObject :: (Double -> (Double, Double, Double) -> ObjectPicture) -> Cell -> GameObject Cell
 fareToObject picture fare = object (show $ cellNum fare) (picture (radius fare) (rgb fare)) False ((realToFrac *** realToFrac) (pos fare)) (0,0) fare
 
-createFares :: Cells -> [GameObject Cell] 
-createFares = map (fareToObject createCellPicture) 
+createFares :: Cells -> [GameObject Cell]
+createFares = map (fareToObject createCellPicture)
 
 getFareFromCollision :: [GameObject Cell] -> GameObject Cell -> IOGame t Cell u v (GameObject Cell)
 getFareFromCollision [] cell = return cell
 getFareFromCollision (fare:fares) cell = do
   col <- objectsCollision fare cell
-  if col 
-    then return fare 
+  if col
+    then return fare
     else getFareFromCollision fares cell
