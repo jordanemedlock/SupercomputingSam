@@ -12,7 +12,8 @@ data Fare = Fare { cells :: Cells } deriving (Show, Eq)
 
 generateRandomPopulation :: Double -> Double -> Int -> IO Cells
 generateRandomPopulation xrange yrange massRange = do
-  let names = repeat "fare"
+  gen <- newStdGen
+  let names = S.splitOn "a" $ randomRs ('a','z') gen
   let cellNums = map negate [1..]
   gen1 <- newStdGen
   let masses = randomRs (0,massRange) gen1
