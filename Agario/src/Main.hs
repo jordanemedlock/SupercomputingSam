@@ -63,18 +63,16 @@ stepAction = do
        let player' = updateObjectSize (Point2D (realToFrac $ radius newCell) (realToFrac $ radius newCell)) player
 
        objMans <- getObjectManagers
+
        let newFObjMan = destroyGameObject (getGameObjectName collidee) "Fares" objMans
        let newPObjMan = updateObject (const player') (getGameObjectId playerObj) cellManagerName objMans
        let fareObjMan = searchObjectManager "Fares" newFObjMan
        let playerObjMan = searchObjectManager cellManagerName newPObjMan
        
-       
+
        setObjectManagers [fareObjMan, playerObjMan]
--- Here's what you need to do:
-  -- Adapt updatePlayerPicture to happen when col happens
-  -- That's it
   updateObjectsPostitions
-  moveAllObjects 
+  moveAllObjects
   return ()
 
 updateCell :: GameObject Cell -> IOGame t Cell u v (GameObject Cell)
@@ -91,15 +89,6 @@ updateObjectsPostitions = do
   newCells  <- mapM updateCell cells
   let cellGroup = objectGroup cellManagerName newCells
   setObjectManagers [fareGroup, cellGroup]
-
--- updatePlayerPicture :: GameObject Cell -> IOGame t Cell u v ()
--- updatePlayerPicture player = do  
---   fareGroup <- findObjectManager "Fares"
---   let playerCell = getGameObjectAttribute player
---   let newPlayer = createCell playerCell
---   let cellGroup = objectGroup cellManagerName [newPlayer] 
---   setObjectManagers [fareGroup, cellGroup]
-
 
 createCellPicture :: Double -> (Double, Double, Double) -> ObjectPicture
 createCellPicture r' (r, g, b) = Basic $ Circle radius red green blue Filled
